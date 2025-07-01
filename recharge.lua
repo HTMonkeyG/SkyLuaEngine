@@ -1,0 +1,5 @@
+local e = game:eventBarn():AddEventByMetaName("AvatarChargeEnergy")
+e:addAmount(1000)
+e:glow(true)
+e:duration(1.0)
+e:Start()
