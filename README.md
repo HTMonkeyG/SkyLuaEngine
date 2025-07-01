@@ -12,7 +12,7 @@ Because of a weird behavior in Sky, you have to run the DLL injection immediatel
 
 ```
 @echo off
-bin\launch.exe bin\debug.dll "C:\Program Files (x86)\Steam\steamapps\common\Sky Children of the Light\sky.exe"
+bin\launch.exe bin\debug.dll "C:\Program Files (x86)\Steam\steamapps\common\Sky Children of the Light\Sky.exe"
 bin\terminal.exe
 ```
 
