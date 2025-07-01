@@ -8,7 +8,7 @@ The provided `terminal.c` lets you script in a command line (like a REPL) to loa
 
 The mod itself is comprised of `debug.c` (a DLL file that is loaded into the game to listen for incoming scripts) and `launch.c` (for launching the game and injecting debug.dll into it).
 
-Because of a weird behavior in Sky, you have to run the DLL injection immediately when the game launches and before the game engine initializes, wtherwise you won't see the game output in the terminal. That's why `launch.c` both launches the game and injects the DLL into the process. You have to pass the name of the executable and the DLL (the executable is Sky.exe, the DLL is debug.c). You can create a launch script called `play.bat` like this:
+Because of a weird behavior in Sky, you have to run the DLL injection immediately when the game launches and before the game engine initializes, otherwise you won't see the game output in the terminal. That's why `launch.c` both launches the game and injects the DLL into the process. You have to pass the name of the executable and the DLL (the executable is Sky.exe, the DLL is debug.c). You can create a launch script called `play.bat` like this:
 
 ```
 @echo off
