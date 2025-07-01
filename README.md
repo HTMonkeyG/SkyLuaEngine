@@ -16,7 +16,7 @@ bin\launch.exe bin\debug.dll "C:\Program Files (x86)\Steam\steamapps\common\Sky 
 bin\terminal.exe
 ```
 
-This launches the game and opens terminal.exe (example compilation of [terminal.c](terminal.c)) automatically.
+This launches the game and opens terminal.exe (example compilation of [terminal.c](terminal.c)) automatically. (Note: in this example, terminal.exe keeps the named pipe open, so hotload.exe won't work at the same time.)
 
 I've only tested this on Linux with wine, and haven't actually tested it on Windows, so I don't know if it works on native Windows. It works on my system at the time of writing this README file, and it has continued to work through multiple updates, so it will probably continue to work.
 
