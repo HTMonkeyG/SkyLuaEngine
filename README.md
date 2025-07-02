@@ -8,7 +8,7 @@ The provided `terminal.c` lets you script in a command line (like a REPL) to loa
 
 The mod itself is comprised of `debug.c` (a DLL file that is loaded into the game to listen for incoming scripts) and `launch.c` (for launching the game and injecting debug.dll into it).
 
-Because of a weird behavior in Sky, you have to run the DLL injection immediately when the game launches and before the game engine initializes, otherwise you won't see the game output in the terminal. That's why `launch.c` both launches the game and injects the DLL into the process. You have to pass the name of the executable and the DLL (the executable is Sky.exe, the DLL is debug.c). You can create a launch script called `play.bat` like this:
+You have to do the DLL injection immediately when the game process starts, not after the game engine initializes, otherwise for some reason game output (including lines written by Lua print and io.write) doesn't get printed to stdout. It's something to do with the way the game engine initializes the console. That's why `launch.c` launches an executable and immediately injects the DLL into the created process rather than just being an injector. You have to pass the name of the game binary and the DLL (the game binary is Sky.exe, the DLL is debug.c). You can create a launch script called `play.bat` like this:
 
 ```
 @echo off
