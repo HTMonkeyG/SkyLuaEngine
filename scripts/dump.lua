@@ -1,5 +1,5 @@
 --creates eventdump.txt in the main game directory
-local f = io.open("eventdump.txt", "a")
+local f = io.open("eventdump.txt", "w")
 local i=0
 local function writeParam(name, data, nullable)
 	f:write(data.__type or data.__ctype)
@@ -34,7 +34,7 @@ for k, v in pairs(_ENV) do
 		end
 		f:write("\n")
 		f:close()
-		f = io.open("eventdump.txt", "a")
+		f = io.open("eventdump.txt", "a") --if I don't do this it won't write every line to the file for some reason, yes I tried calling :flush()
 	end
 end
 f:write("Total: " .. tostring(i) .. " events\n")
