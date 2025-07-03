@@ -35,7 +35,7 @@ uint64_t on_update(uint64_t a1, uint64_t a2, uint64_t a3, unsigned int a4) {
     return original_update(a1, a2, a3, a4);
 }
 
-void write_hook(uint8_t* target) {
+void write_update_hook(uint8_t* target) {
     void* trampoline = VirtualAlloc(NULL, 64, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (!trampoline) return;
 
@@ -159,7 +159,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
         InitializeCriticalSection(&new_script_flag);
         CreateThread(NULL, 0, ipc_listener, NULL, 0, NULL);
         evaluate = (debugdostring)(debugdostring_ptr);
-        write_hook((void*)(update_ptr));
+        write_update_hook((void*)(update_ptr));
         break;
     case DLL_PROCESS_DETACH:
         FreeConsole();
