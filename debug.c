@@ -19,7 +19,7 @@ CRITICAL_SECTION new_script_flag;
 char* script = NULL;
 volatile BOOL new_script = FALSE;
 
-uint64_t update_hook(uint64_t a1, uint64_t a2, uint64_t a3, unsigned int a4) {
+uint64_t on_update(uint64_t a1, uint64_t a2, uint64_t a3, unsigned int a4) {
     if (!initialized) {
         state = *(uint64_t*)(a2 + 32);
         initialized = TRUE;
@@ -58,7 +58,7 @@ void write_hook(uint8_t* target) {
     target[3] = 0x00;
     target[4] = 0x00;
     target[5] = 0x00;
-    *(uint64_t*)(target + 6) = (uint64_t)&update_hook;
+    *(uint64_t*)(target + 6) = (uint64_t)&on_update;
     VirtualProtect(target, 14, old_protect, &old_protect);
 
     original_update = (update)trampoline;
