@@ -1,0 +1,18 @@
+# Files
+
+# Wildcard files.
+*.a
+*.o
+*.dll
+*.exe
+*.bak
+*.ini
+test*
+
+# Folders
+.vscode/
+dist/
+pack/
+.VSCodeCounter/
+.idea/
+packaging/
