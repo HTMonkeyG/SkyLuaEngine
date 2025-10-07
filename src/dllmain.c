@@ -6,73 +6,11 @@
 
 #include "sigcodes.h"
 #include "aliases.h"
+#include "skylua.h"
 
-CRITICAL_SECTION newScriptLock;
-char *script = NULL;
-volatile BOOL newScriptPresent = FALSE;
+HMODULE hModuleDll;
 
-BOOL initialized = FALSE;
-u64 *state;
-
-typedef u64 (__fastcall *PFN_Lua_debugDoString)(
-  u64 *, char *);
-typedef u64 (__fastcall *PFN_Client_checkChangeLevel)(
-  u64 **);
-
-PFN_Lua_debugDoString fn_Lua_debugDoString;
-PFN_Client_checkChangeLevel fn_Client_checkChangeLevel
-  , tramp_Client_checkChangeLevel;
-
-u64 __fastcall hook_Client_checkChangeLevel(
-  u64 **a1
-) {
-  if (!initialized) {
-    state = *(a1 + 4);
-    initialized = TRUE;
-  }
-
-  EnterCriticalSection(&newScriptLock);
-  if (newScriptPresent && state) {
-    //fn_Lua_debugDoString(state, script);
-    //printf("testaaa %d\n", luaL_dostring((lua_State *)state, script));
-    //printf("testaaa %d\n", lua_resume((lua_State *)state, NULL, 1));
-    if (luaL_loadstring((lua_State *)state, script) != 0) {
-      const char* load_error = lua_tostring((lua_State *)state, -1);
-      printf("Compilation err: %s\n", load_error);
-      lua_pop((lua_State *)state, 1);
-    } else if (lua_pcall((lua_State *)state, 0, LUA_MULTRET, 0) != 0) {
-      const char* runtime_error = lua_tostring((lua_State *)state, -1);
-      printf("Runtime err: %s\n", runtime_error);
-      lua_pop((lua_State *)state, 1);
-    }
-    newScriptPresent = FALSE;
-  }
-  LeaveCriticalSection(&newScriptLock);
-
-  return tramp_Client_checkChangeLevel(a1);
-}
-
-BOOL queueEvaluate(char *input) {
-  BOOL success = FALSE;
-
-  EnterCriticalSection(&newScriptLock);
-  if (!newScriptPresent) {
-    if (script != NULL)
-      free(script);
-
-    script = (char *)malloc(strlen(input) + 1);
-    if (script != NULL) {
-      strcpy(script, input);
-      newScriptPresent = TRUE;
-      success = TRUE;
-    }
-  }
-  LeaveCriticalSection(&newScriptLock);
-
-  return success;
-}
-
-DWORD WINAPI ipcThread(void *) {
+static DWORD WINAPI ipcThread(void *) {
   char pipeName[] = "\\\\.\\pipe\\sky_research";
   char buffer[131072];
   DWORD bytesRead;
@@ -94,7 +32,7 @@ DWORD WINAPI ipcThread(void *) {
     if (ConnectNamedPipe(hPipe, NULL) || GetLastError() == ERROR_PIPE_CONNECTED) {
       while (ReadFile(hPipe, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0) {
         buffer[bytesRead] = '\0';
-        queueEvaluate(buffer);
+        queueEval(buffer);
       }
     }
 
@@ -105,19 +43,13 @@ DWORD WINAPI ipcThread(void *) {
   return 0;
 }
 
-HTStatus HTMLAPI HTModOnInit(
+__declspec(dllexport) HTStatus HTMLAPI HTModOnInit(
   void *reserved
 ) {
-  fn_Lua_debugDoString = HTSigScan(&sig_Lua_debugDoString);
-  fn_Client_checkChangeLevel = HTSigScan(&sig_Client_checkChangeLevel);
-  if (!fn_Client_checkChangeLevel || !fn_Lua_debugDoString)
+  if (!initAllHooks())
     return HT_FAIL;
 
-  MH_CreateHook(
-    fn_Client_checkChangeLevel,
-    (void *)hook_Client_checkChangeLevel,
-    (void **)&tramp_Client_checkChangeLevel);
-  MH_EnableHook(MH_ALL_HOOKS);
+  initGui();
   CreateThread(NULL, 0, ipcThread, NULL, 0, NULL);
 
   return HT_SUCCESS;
@@ -129,11 +61,13 @@ BOOL APIENTRY DllMain(
   LPVOID lpReserved
 ) {
   if (dwReason == DLL_PROCESS_ATTACH) {
+    hModuleDll = hModule;
     DisableThreadLibraryCalls(hModule);
-    InitializeCriticalSection(&newScriptLock);
     MH_Initialize();
-  } else if (dwReason == DLL_PROCESS_DETACH)
-    DeleteCriticalSection(&newScriptLock);
+  } else if (dwReason == DLL_PROCESS_DETACH) {
+    MH_DisableHook(MH_ALL_HOOKS);
+    MH_Uninitialize();
+  }
 
   return TRUE;
 }
