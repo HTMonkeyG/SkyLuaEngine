@@ -1,5 +1,7 @@
 #include <windows.h>
 #include "MinHook.h"
+#include "lua.h"
+#include "lauxlib.h"
 #include "includes/htmod.h"
 
 #include "sigcodes.h"
@@ -31,7 +33,18 @@ u64 __fastcall hook_Client_checkChangeLevel(
 
   EnterCriticalSection(&newScriptLock);
   if (newScriptPresent && state) {
-    fn_Lua_debugDoString(state, script);
+    //fn_Lua_debugDoString(state, script);
+    //printf("testaaa %d\n", luaL_dostring((lua_State *)state, script));
+    //printf("testaaa %d\n", lua_resume((lua_State *)state, NULL, 1));
+    if (luaL_loadstring((lua_State *)state, script) != 0) {
+      const char* load_error = lua_tostring((lua_State *)state, -1);
+      printf("编译错误: %s\n", load_error);
+      lua_pop((lua_State *)state, 1);
+    } else if (lua_pcall((lua_State *)state, 0, LUA_MULTRET, 0) != 0) {
+      const char* runtime_error = lua_tostring((lua_State *)state, -1);
+      printf("运行时错误: %s\n", runtime_error);
+      lua_pop((lua_State *)state, 1);
+    }
     newScriptPresent = FALSE;
   }
   LeaveCriticalSection(&newScriptLock);
