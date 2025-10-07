@@ -38,11 +38,11 @@ u64 __fastcall hook_Client_checkChangeLevel(
     //printf("testaaa %d\n", lua_resume((lua_State *)state, NULL, 1));
     if (luaL_loadstring((lua_State *)state, script) != 0) {
       const char* load_error = lua_tostring((lua_State *)state, -1);
-      printf("编译错误: %s\n", load_error);
+      printf("Compilation err: %s\n", load_error);
       lua_pop((lua_State *)state, 1);
     } else if (lua_pcall((lua_State *)state, 0, LUA_MULTRET, 0) != 0) {
       const char* runtime_error = lua_tostring((lua_State *)state, -1);
-      printf("运行时错误: %s\n", runtime_error);
+      printf("Runtime err: %s\n", runtime_error);
       lua_pop((lua_State *)state, 1);
     }
     newScriptPresent = FALSE;
