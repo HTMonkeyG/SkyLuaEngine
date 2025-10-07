@@ -1,0 +1,13 @@
+{
+  "package_name": "sky-lua",
+  "version": "0.0.1",
+  "game_edition": 2,
+  "mod_name": "SkyLuaEngine",
+  "description": "Invokes lua engine in Sky.",
+  "main": "sky-lua.dll",
+  "dependencies": {},
+  "keywords": [],
+  "author": "rosemash",
+  "license": "MIT",
+  "website": ""
+}
