@@ -58,6 +58,8 @@ i32 scanAutoExec() {
   // <gPathAutoExec>/
   wcscpy_s(path, MAX_PATH, gPathAutoExec);
   wcscat_s(path, MAX_PATH, L"\\");
+  if (wcslen(path) >= MAX_PATH)
+    return FindClose(hFindFile), 0;
   p = &path[wcslen(path)];
 
   do {
@@ -67,6 +69,7 @@ i32 scanAutoExec() {
       continue;
 
     // <gPathAutoExec>/<cFileName>
+    *p = 0;
     wcscat_s(p, MAX_PATH, findData.cFileName);
     fd = _wfopen(path, L"rb");
     if (!fd)
@@ -89,6 +92,8 @@ i32 scanAutoExec() {
 
     free(content);
   } while (FindNextFileW(hFindFile, &findData));
+
+  FindClose(hFindFile);
 
   return 1;
 }

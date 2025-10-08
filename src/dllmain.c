@@ -51,6 +51,8 @@ __declspec(dllexport) HTStatus HTMLAPI HTModOnInit(
 
   initGui();
   initPaths();
+  // Create namespace for HT's scripts.
+  //queueEval("if type(_G.ht) ~= \"table\" then _G.ht = {} end");
   scanAutoExec();
   CreateThread(NULL, 0, ipcThread, NULL, 0, NULL);
 
