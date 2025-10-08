@@ -61,7 +61,7 @@ i32 scanAutoExec() {
   p = &path[wcslen(path)];
 
   do {
-    if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+    if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
       continue;
     if (!wcscmp(findData.cFileName, L".") || !wcscmp(findData.cFileName, L".."))
       continue;
