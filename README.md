@@ -1,40 +1,29 @@
 # Sky: COTL Research Tool
 
-A really simple C program that lets you load Lua scripts into "Sky: Children of the Light" (desktop version) through a named pipe while it's running. The scripts run in the game's built-in Lua engine.
+A simple C++ program that lets you load Lua scripts into "Sky: Children of the Light" (desktop version) through a named pipe while it's running, or execute scripts when the game is initialized. The scripts run in the game's built-in Lua engine.
 
 ![desktop screenshot](screenshot.png)
 
-The provided `terminal.c` lets you script in a command line (like a REPL) to load scripts into the game, while `hotload.c` lets you load scripts from a directory.
+The provided `control/terminal.c` lets you script in a command line (like a REPL) to load scripts into the game, while `control/hotload.c` lets you load scripts from a directory.
 
-The mod itself is comprised of `debug.c` (a DLL file that is loaded into the game to listen for incoming scripts) and `launch.c` (for launching the game and injecting debug.dll into it).
+The source of the mod is in `src/`.
 
-You have to do the DLL injection immediately when the game process starts, not after the game engine initializes, otherwise for some reason game output (including lines written by Lua print and io.write) doesn't get printed to stdout. It's something to do with the way the game engine initializes the console. That's why `launch.c` launches an executable and immediately injects the DLL into the created process rather than just being an injector. You have to pass the name of the game binary and the DLL (the game binary is Sky.exe, the DLL is debug.c). You can create a launch script called `play.bat` like this:
+[HTModLoader](https://www.github.com/HTMonkeyG/HTML-Sky) have to be installed before using this mod. View its documentation for installation.
 
-```
-@echo off
-bin\launch.exe bin\debug.dll "C:\Program Files (x86)\Steam\steamapps\common\Sky Children of the Light\Sky.exe"
-bin\terminal.exe
-```
+You need to put the compiled `sky-lua.dll` and `manifest.json` in a single folder to register the mod, then start the game as normal. When the game is fully initialized, press `F8` to show the in-game ImGui menu. Press `F9` to execute active script. Put scripts in `scripts/autoexec` under the mod folder to evaluate them when the game has started.
 
-This launches the game and opens terminal.exe (example compilation of [terminal.c](terminal.c)) automatically. (Note: in this example, terminal.exe keeps the named pipe open, so hotload.exe won't work at the same time.)
+The mod itself contains a independent Lua engine (v5.2.0, the same version with the one in-game), enable `Use local engine` to interpret scripts with it. Note that the local engine has some issues when using `print()` function which the game defined. Use `LuaLog` instead.
 
-I've only tested this on Linux with wine, and haven't actually tested it on Windows, so I don't know if it works on native Windows. It works on my system at the time of writing this README file, and it has continued to work through multiple updates, so it will probably continue to work.
+The mod can be loaded on both Chinese and international editions. However, since the Chinese edition of the game requires administrator privileges, the external executable files also need to be started with administrator privileges.
 
 ## Building
 
-It's really simple since there are no dependencies besides standard built-in Windows and C stuff (windows.h, stdio.h, stdint.h, string.h, and direct.h are the only headers used). I personally use x86_64-w64-mingw32, but you can use anything:
+Execute `mingw32-make all` to compile third-party libraries included in the repository during the first compilation. After that you can execute `mingw32-make` directly.
 
-```
-x86_64-w64-mingw32-gcc -shared -o bin/debug.dll debug.c
-x86_64-w64-mingw32-gcc -o bin/launch.exe launch.c
-x86_64-w64-mingw32-gcc -o bin/terminal.exe terminal.c
-x86_64-w64-mingw32-gcc -o bin/hotload.exe hotload.c -Wl,--subsystem,windows
-```
-
-The `-Wl,--subsystem,windows` is just for disabling the console, since I don't want it to flash and disrupt my input in the game when I load a script.
+The files in `control\` are additional executable files that provide cross process operations. You can compile them using any compilers.
 
 ## Updating
 
-If it breaks, two patterns in `debug.c` need to be updated. `debugdostring` is the debug function built into the game that loads code from a Lua source string. `update` is nonspecific, it's just a function that runs in the game's main loop and receives a Lua state pointer - it can be replaced with any other similar function (the criteria being that it gets a Lua state and runs in the game's main update thread).
+If it breaks, two signature codes in `src\sigcodes.h` need to be updated. `Lua::debugDoString` is the debug function built into the game that loads code from a Lua source string. `Client::checkChangeLevel` is nonspecific, it's just a function that runs in the game's main loop and receives a Lua state pointer - it can be replaced with any other similar function (the criteria being that it gets a Lua state and runs in the game's main update thread).
 
-The main update thread thing is important because Lua is single-threaded, so `debugdostring` has to be called from within the game's main thread. If you tried calling it directly, it would cause occasional crashes.
+The main update thread thing is important because Lua is single-threaded, so `Lua::debugDoString` or other operations with local Lua engine has to be called from within the game's main thread. If you tried calling it directly, it would cause occasional crashes.

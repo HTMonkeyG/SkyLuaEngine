@@ -21,7 +21,7 @@ CC = gcc
 CXX = g++
 
 # Params.
-CFLAGS = -Wall -Wformat -O3 -ffunction-sections -fdata-sections -static -flto=auto -s -mavx -msse
+CFLAGS = -Wall -Wformat -O3 -ffunction-sections -fdata-sections -static -flto=auto -s -Wno-unused-function -Wno-unused-variable
 CFLAGS += -I./src
 # Include ImGui.
 CFLAGS += -I./libraries/htmodloader/includes/imgui-1.91.9b -I./libraries/htmodloader/includes/imgui-1.91.9b/backends
@@ -70,6 +70,7 @@ all: libs
 libs:
 	@echo Compiling libraries ...
 	-@$(MAKE) -s -C ./libraries/MinHook libMinHook.a
+	-@$(MAKE) -s -C ./libraries/lua-5.2.0 mingw
 
 clean_libs:
 	-@$(MAKE) -s -C ./libraries/MinHook clean
