@@ -23,6 +23,11 @@ extern i08 gUseLocalEngine;
 i32 initAllHooks();
 // Initialize GUI and inputs.
 i32 initGui();
+// Get or create script folders.
+i32 initPaths();
+
+// Push all scripts in <ModFolder>/scripts/autoexec into the queue.
+i32 scanAutoExec();
 
 // Evaluate all queued scripts in-game. Use local lua engine to interpret the
 // scripts when local is true.

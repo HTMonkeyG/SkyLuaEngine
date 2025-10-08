@@ -31,17 +31,17 @@ __declspec(dllexport) void HTMLAPI HTModRenderGui(
 
   if (!ImGui::Begin("Sky Lua Engine", &gShowMenu))
     return ImGui::End(), ImGui::PopID();
-  
+
   ImGui::Checkbox("Use local engine", (bool *)&gUseLocalEngine);
 
   if (ImGui::Button("Run", ImVec2(-FLT_MIN, 0)))
     queueEval(gInputBuffer);
 
-  ImGui::SetNextItemWidth(-FLT_MIN);
   ImGui::InputTextMultiline(
     "##Input",
     gInputBuffer,
-    sizeof(gInputBuffer));
+    sizeof(gInputBuffer),
+    ImVec2(-FLT_MIN, -FLT_MIN));
 
   ImGui::End();
   ImGui::PopID();

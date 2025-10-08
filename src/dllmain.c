@@ -50,6 +50,8 @@ __declspec(dllexport) HTStatus HTMLAPI HTModOnInit(
     return HT_FAIL;
 
   initGui();
+  initPaths();
+  scanAutoExec();
   CreateThread(NULL, 0, ipcThread, NULL, 0, NULL);
 
   return HT_SUCCESS;
