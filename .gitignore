@@ -16,3 +16,4 @@ pack/
 .VSCodeCounter/
 .idea/
 packaging/
+bin/
