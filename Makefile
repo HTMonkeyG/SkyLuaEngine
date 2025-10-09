@@ -31,6 +31,8 @@ CFLAGS += -I./libraries/htmodloader/includes/htmodloader
 CFLAGS += -I./libraries/MinHook/include
 # Include Lua.
 CFLAGS += -I./libraries/lua-5.2.0/src
+# Include TextEditor.
+CFLAGS += -I./libraries/ImGuiColorTextEdit
 # Macros.
 CFLAGS += -DNDEBUG -DUSE_HTML
 
@@ -39,6 +41,7 @@ LFLAGS += -lgdi32 -ldwmapi -ld3dcompiler -lstdc++
 LFLAGS += -L./libraries/htmodloader/lib -lhtmodloader
 LFLAGS += -L./libraries/MinHook -lMinHook
 LFLAGS += -L./libraries/lua-5.2.0/src -llua
+LFLAGS += -L./libraries/ImGuiColorTextEdit -lTextEditor
 
 vpath %.c $(SRC_DIRS)
 vpath %.cpp $(SRC_DIRS)
@@ -71,6 +74,8 @@ libs:
 	@echo Compiling libraries ...
 	-@$(MAKE) -s -C ./libraries/MinHook libMinHook.a
 	-@$(MAKE) -s -C ./libraries/lua-5.2.0 mingw
+	-@$(MAKE) -s -C ./libraries/ImGuiColorTextEdit
 
 clean_libs:
 	-@$(MAKE) -s -C ./libraries/MinHook clean
+	-@$(MAKE) -s -C ./libraries/ImGuiColorTextEdit clean

@@ -1,5 +1,6 @@
 #include "includes/htmod.h"
 #include "imgui.h"
+#include "TextEditor.h"
 #include "aliases.h"
 #include "skylua.h"
 
@@ -7,8 +8,9 @@ i08 gUseLocalEngine = 0;
 
 static HTHandle hKeyMenuToggle
   , hKeyExecuteScript;
-static bool gShowMenu = false;
-static char gInputBuffer[100000] = {0};
+static bool gShowMenu = false
+  , gEditorInit = false;
+static TextEditor gEditor;
 
 static void toggleMenu(HTKeyEvent *e) {
   if ((e->flags & HTKeyEventFlags_Mask) == HTKeyEventFlags_Down)
@@ -17,7 +19,29 @@ static void toggleMenu(HTKeyEvent *e) {
 
 static void executeScript(HTKeyEvent *e) {
   if ((e->flags & HTKeyEventFlags_Mask) == HTKeyEventFlags_Down)
-    queueEval(gInputBuffer);
+    queueEval(gEditor.GetText().c_str());
+}
+
+static void initTextEditor() {
+  auto lang = TextEditor::LanguageDefinition::Lua();
+  static const char *skyGameDefs[] = {
+    "game", "LuaLog", "LoadLevel", "Kill", "HurtLegL"
+  };
+  TextEditor::Palette palette = TextEditor::GetDarkPalette();
+
+  // Set game-related definitions.
+  for (u32 i = 0; i < sizeof(skyGameDefs) / sizeof(skyGameDefs[0]); ++i) {
+	  TextEditor::Identifier id;
+	  id.mDeclaration = "Sky Game Defs";
+	  lang.mIdentifiers.insert(std::make_pair(std::string(skyGameDefs[i]), id));
+  }
+  gEditor.SetLanguageDefinition(lang);
+
+  // Set the same colors as HTML.
+  palette[(int)TextEditor::PaletteIndex::Background] = ImGui::GetColorU32(ImGuiCol_WindowBg);
+  gEditor.SetPalette(palette);
+
+  gEditor.SetTabSize(2);
 }
 
 __declspec(dllexport) void HTMLAPI HTModRenderGui(
@@ -26,7 +50,15 @@ __declspec(dllexport) void HTMLAPI HTModRenderGui(
 ) {
   if (!gShowMenu)
     return;
-  
+  if (!gEditorInit) {
+    // We should not put this initialization in HTModOnInit() when using HTML
+    // SDK version >= 1.4.0, because the ImGui isn't initialized when the mod
+    // is loaded.
+    // For a better compatibility, we put this in HTModRenderGui().
+    gEditorInit = true;
+    initTextEditor();
+  }
+
   ImGui::PushID("sky-lua");
 
   if (!ImGui::Begin("Sky Lua Engine", &gShowMenu))
@@ -35,13 +67,11 @@ __declspec(dllexport) void HTMLAPI HTModRenderGui(
   ImGui::Checkbox("Use local engine", (bool *)&gUseLocalEngine);
 
   if (ImGui::Button("Run", ImVec2(-FLT_MIN, 0)))
-    queueEval(gInputBuffer);
+    queueEval(gEditor.GetText().c_str());
 
-  ImGui::InputTextMultiline(
-    "##Input",
-    gInputBuffer,
-    sizeof(gInputBuffer),
-    ImVec2(-FLT_MIN, -FLT_MIN));
+  ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0);
+  gEditor.Render("TextEditor");
+  ImGui::PopStyleVar();
 
   ImGui::End();
   ImGui::PopID();
