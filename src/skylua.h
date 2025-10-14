@@ -41,6 +41,9 @@ i32 evalAllQueued(
 i32 queueEval(
   const char *script);
 
+// Add lua bindings.
+i32 addLuaBindings(lua_State *L);
+
 #ifdef __cplusplus
 }
 #endif

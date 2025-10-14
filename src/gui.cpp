@@ -25,14 +25,22 @@ static void executeScript(HTKeyEvent *e) {
 static void initTextEditor() {
   auto lang = ImTextEditor::LanguageDefinition::Lua();
   static const char *skyGameDefs[] = {
-    "game", "LuaLog", "LoadLevel", "Kill", "HurtLegL"
+    "game", "LuaLog", "LoadLevel", "Kill", "HurtLegL", "sle"
+  };
+  static const char *skyGameDefDesc[] = {
+    "Game status",
+    "Print the log to Sky.log",
+    "Load specified level",
+    "Terminate the game process",
+    "Reduce cape energy",
+    "Namespace for SkyLuaEngine"
   };
   ImTextEditor::Palette palette = ImTextEditor::GetDarkPalette();
 
   // Set game-related definitions.
   for (u32 i = 0; i < sizeof(skyGameDefs) / sizeof(skyGameDefs[0]); ++i) {
 	  ImTextEditor::Identifier id;
-	  id.mDeclaration = "Sky Game Defs";
+	  id.mDeclaration = skyGameDefDesc[i];
 	  lang.mIdentifiers.insert(std::make_pair(std::string(skyGameDefs[i]), id));
   }
   gEditor.SetLanguageDefinition(lang);

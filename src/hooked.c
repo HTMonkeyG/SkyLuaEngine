@@ -12,8 +12,9 @@ static PFN_Client_checkChangeLevel fn_Client_checkChangeLevel
 static u64 __fastcall hook_Client_checkChangeLevel(
   u64 **a1
 ) {
-  if (!initialized) {
+  if (!initialized && a1) {
     gGameLuaState = *(lua_State **)(a1 + 4);
+    addLuaBindings(gGameLuaState);
     initialized = TRUE;
   }
 
