@@ -3,6 +3,8 @@
 #include <mutex>
 #include <queue>
 
+#include "includes/htmodloader.h"
+
 // Lua apis have no extern "C" declarations, so we add it manually.
 extern "C" {
 #include "lua.h"
@@ -29,11 +31,11 @@ static bool runLuaLocalEngine(
 
   if (luaL_loadstring(gGameLuaState, script) != 0) {
     const char* load_error = lua_tostring(gGameLuaState, -1);
-    printf("Compilation err: %s\n", load_error);
+    HTTellText("[SkyLuaEngine][WARN] Compilation err: %s\n", load_error);
     result = false;
   } else if (lua_pcall(gGameLuaState, 0, LUA_MULTRET, 0) != 0) {
     const char* runtime_error = lua_tostring(gGameLuaState, -1);
-    printf("Runtime err: %s\n", runtime_error);
+    HTTellText("[SkyLuaEngine][WARN] Runtime err: %s\n", runtime_error);
     result = false;
   }
 
