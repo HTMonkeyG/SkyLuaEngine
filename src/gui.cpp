@@ -10,7 +10,7 @@ static HTHandle hKeyMenuToggle
   , hKeyExecuteScript;
 static bool gShowMenu = false
   , gEditorInit = false;
-static TextEditor gEditor;
+static ImTextEditor gEditor;
 
 static void toggleMenu(HTKeyEvent *e) {
   if ((e->flags & HTKeyEventFlags_Mask) == HTKeyEventFlags_Down)
@@ -23,25 +23,26 @@ static void executeScript(HTKeyEvent *e) {
 }
 
 static void initTextEditor() {
-  auto lang = TextEditor::LanguageDefinition::Lua();
+  auto lang = ImTextEditor::LanguageDefinition::Lua();
   static const char *skyGameDefs[] = {
     "game", "LuaLog", "LoadLevel", "Kill", "HurtLegL"
   };
-  TextEditor::Palette palette = TextEditor::GetDarkPalette();
+  ImTextEditor::Palette palette = ImTextEditor::GetDarkPalette();
 
   // Set game-related definitions.
   for (u32 i = 0; i < sizeof(skyGameDefs) / sizeof(skyGameDefs[0]); ++i) {
-	  TextEditor::Identifier id;
+	  ImTextEditor::Identifier id;
 	  id.mDeclaration = "Sky Game Defs";
 	  lang.mIdentifiers.insert(std::make_pair(std::string(skyGameDefs[i]), id));
   }
   gEditor.SetLanguageDefinition(lang);
 
   // Set the same colors as HTML.
-  palette[(int)TextEditor::PaletteIndex::Background] = ImGui::GetColorU32(ImGuiCol_WindowBg);
+  palette[(int)ImTextEditor::PaletteIndex::Background] = ImGui::GetColorU32(ImGuiCol_WindowBg);
   gEditor.SetPalette(palette);
 
   gEditor.SetTabSize(2);
+  gEditor.SetFontSize(26);
 }
 
 __declspec(dllexport) void HTMLAPI HTModRenderGui(
@@ -70,7 +71,7 @@ __declspec(dllexport) void HTMLAPI HTModRenderGui(
     queueEval(gEditor.GetText().c_str());
 
   ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0);
-  gEditor.Render("TextEditor");
+  gEditor.Render("ImTextEditor");
   ImGui::PopStyleVar();
 
   ImGui::End();
