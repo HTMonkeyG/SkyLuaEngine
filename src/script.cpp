@@ -82,7 +82,6 @@ i32 queueEval(
 
   if (!script)
     return 0;
-  
   u64 len = strlen(script);
   if (!len)
     return 1;
@@ -91,7 +90,7 @@ i32 queueEval(
 
   if (!tmp)
     return 0;
-  
+
   strcpy(tmp, script);
   gScripts.push(tmp);
 

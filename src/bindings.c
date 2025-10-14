@@ -12,7 +12,7 @@
 static i32 logToHT(lua_State *L) {
   const char *msg = luaL_checkstring(L, 1);
   if (msg)
-    HTTellText("%s", msg);
+    HTTellText("[SkyLuaEngine][INFO] %s", msg);
   return 0;
 }
 
