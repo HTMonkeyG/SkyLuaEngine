@@ -31,5 +31,8 @@ i32 addLuaBindings(lua_State *L) {
 
   lua_pop(L, 1);
 
+  // Try to register our own print function.
+  queueEval("_G.sle.print=function(...)_G.sle.log(table.concat({...},\"\t\"))end");
+
   return 1;
 }
