@@ -27,19 +27,14 @@ CFLAGS += -I./src
 CFLAGS += -I./libraries/htmodloader/includes/imgui-1.92.2b -I./libraries/htmodloader/includes/imgui-1.92.2b/backends
 # Include HTML.
 CFLAGS += -I./libraries/htmodloader/includes/htmodloader
-# Include MinHook.
-CFLAGS += -I./libraries/MinHook/include
 # Include Lua.
 CFLAGS += -I./libraries/lua-5.2.0/src
 # Include TextEditor.
 CFLAGS += -I./libraries/ImGuiColorTextEdit
-# Macros.
-CFLAGS += -DNDEBUG -DUSE_HTML
 
 LFLAGS = -Wl,--gc-sections,-O3,--as-needed,--version-script=$(VERSION_SCRIPT)
 LFLAGS += -lgdi32 -ldwmapi -ld3dcompiler -lstdc++
 LFLAGS += -L./libraries/htmodloader/lib -lhtmodloader
-LFLAGS += -L./libraries/MinHook -lMinHook
 LFLAGS += -L./libraries/lua-5.2.0/src -llua
 LFLAGS += -L./libraries/ImGuiColorTextEdit -lTextEditor
 
