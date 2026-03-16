@@ -1,11 +1,6 @@
 #include <windows.h>
-#include "MinHook.h"
-#include "lua.h"
-#include "lauxlib.h"
 #include "includes/htmod.h"
 
-#include "sigcodes.h"
-#include "aliases.h"
 #include "skylua.h"
 
 HMODULE hModuleDll;
@@ -32,7 +27,7 @@ static DWORD WINAPI ipcThread(void *) {
     if (ConnectNamedPipe(hPipe, NULL) || GetLastError() == ERROR_PIPE_CONNECTED) {
       while (ReadFile(hPipe, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0) {
         buffer[bytesRead] = '\0';
-        queueEval(buffer);
+        sleQueueEval(buffer);
       }
     }
 
@@ -46,17 +41,23 @@ static DWORD WINAPI ipcThread(void *) {
 __declspec(dllexport) HTStatus HTMLAPI HTModOnInit(
   void *reserved
 ) {
-  if (!initAllHooks())
+  if (!sleInitAllHooks())
     return HT_FAIL;
 
-  initGui();
-  initPaths();
-  // Create namespace for HT's scripts.
-  //queueEval("if type(_G.ht) ~= \"table\" then _G.ht = {} end");
-  scanAutoExec();
+  sleInitGui();
+  sleInitPaths();
+  sleScanAutoExec();
+
   CreateThread(NULL, 0, ipcThread, NULL, 0, NULL);
 
   return HT_SUCCESS;
+}
+
+__declspec(dllexport) void HTMLAPI HTModRenderGui(
+  float timeElapesed,
+  void *reserved
+) {
+  sleRenderGui();
 }
 
 BOOL APIENTRY DllMain(
@@ -67,11 +68,6 @@ BOOL APIENTRY DllMain(
   if (dwReason == DLL_PROCESS_ATTACH) {
     hModuleDll = hModule;
     DisableThreadLibraryCalls(hModule);
-    MH_Initialize();
-  } else if (dwReason == DLL_PROCESS_DETACH) {
-    MH_DisableHook(MH_ALL_HOOKS);
-    MH_Uninitialize();
   }
-
   return TRUE;
 }

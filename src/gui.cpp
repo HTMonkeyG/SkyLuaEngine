@@ -1,4 +1,4 @@
-#include "includes/htmod.h"
+#include "includes/htmodloader.h"
 #include "imgui.h"
 #include "TextEditor.h"
 #include "aliases.h"
@@ -19,7 +19,7 @@ static void toggleMenu(HTKeyEvent *e) {
 
 static void executeScript(HTKeyEvent *e) {
   if ((e->flags & HTKeyEventFlags_Mask) == HTKeyEventFlags_Down)
-    queueEval(gEditor.GetText().c_str());
+    sleQueueEval(gEditor.GetText().c_str());
 }
 
 static void initTextEditor() {
@@ -41,7 +41,7 @@ static void initTextEditor() {
   for (u32 i = 0; i < sizeof(skyGameDefs) / sizeof(skyGameDefs[0]); ++i) {
 	  ImTextEditor::Identifier id;
 	  id.mDeclaration = skyGameDefDesc[i];
-	  lang.mIdentifiers.insert(std::make_pair(std::string(skyGameDefs[i]), id));
+	  lang.mIdentifiers.insert(std::make_pair(std::string{skyGameDefs[i]}, id));
   }
   gEditor.SetLanguageDefinition(lang);
 
@@ -53,40 +53,7 @@ static void initTextEditor() {
   gEditor.SetFontSize(26);
 }
 
-__declspec(dllexport) void HTMLAPI HTModRenderGui(
-  float timeElapesed,
-  void *reserved
-) {
-  if (!gShowMenu)
-    return;
-  if (!gEditorInit) {
-    // We should not put this initialization in HTModOnInit() when using HTML
-    // SDK version >= 1.4.0, because the ImGui isn't initialized when the mod
-    // is loaded.
-    // For a better compatibility, we put this in HTModRenderGui().
-    gEditorInit = true;
-    initTextEditor();
-  }
-
-  ImGui::PushID("sky-lua");
-
-  if (!ImGui::Begin("Sky Lua Engine", &gShowMenu))
-    return ImGui::End(), ImGui::PopID();
-
-  ImGui::Checkbox("Use local engine", (bool *)&gUseLocalEngine);
-
-  if (ImGui::Button("Run", ImVec2(-FLT_MIN, 0)))
-    queueEval(gEditor.GetText().c_str());
-
-  ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0);
-  gEditor.Render("ImTextEditor");
-  ImGui::PopStyleVar();
-
-  ImGui::End();
-  ImGui::PopID();
-}
-
-i32 initGui() {
+i32 sleInitGui() {
   hKeyMenuToggle = HTHotkeyRegister(
     hModuleDll,
     "Toggle menu",
@@ -100,4 +67,56 @@ i32 initGui() {
   HTHotkeyListen(hKeyExecuteScript, executeScript);
 
   return 1;
+}
+
+static void showMenuBar() {
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem("New"));
+      if (ImGui::MenuItem("Save"));
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Script")) {
+      if (ImGui::MenuItem("Run"));
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenuBar();
+  }
+}
+
+static void showFileSelector() {
+  ImGui::BeginChild("FileSelect", ImVec2(150, 0), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
+
+  ImGui::EndChild();
+}
+
+void sleRenderGui() {
+  if (!gShowMenu)
+    return;
+
+  if (!gEditorInit) {
+    // We should not put this initialization in HTModOnInit() when using HTML
+    // SDK version >= 1.4.0, because the ImGui isn't initialized when the mod
+    // is loaded.
+    // For a better compatibility, we put this in HTModsleRenderGui().
+    gEditorInit = true;
+    initTextEditor();
+  }
+
+  ImGui::PushID("sky-lua");
+
+  if (!ImGui::Begin("Sky Lua Engine", &gShowMenu))
+    return ImGui::End(), ImGui::PopID();
+
+  ImGui::Checkbox("Use local engine", (bool *)&gUseLocalEngine);
+
+  if (ImGui::Button("Run", ImVec2(-FLT_MIN, 0)))
+    sleQueueEval(gEditor.GetText().c_str());
+
+  ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0);
+  gEditor.Render("ImTextEditor");
+  ImGui::PopStyleVar();
+
+  ImGui::End();
+  ImGui::PopID();
 }

@@ -1,9 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <mutex>
 #include <queue>
-
-#include "includes/htmodloader.h"
 
 // Lua apis have no extern "C" declarations, so we add it manually.
 extern "C" {
@@ -11,15 +10,15 @@ extern "C" {
 #include "lauxlib.h"
 }
 
-#include "aliases.h"
 #include "skylua.h"
 
-lua_State *gGameLuaState;
+// Cached lua_State of the game.
+lua_State *gGameLuaState = nullptr;
 
-static std::queue<char *> gScripts;
-static lua_State *gLocalLuaState;
+static std::queue<std::string> gScripts;
 static std::mutex gScriptLock;
 
+// Run script through the lua engine of the mod.
 static bool runLuaLocalEngine(
   const char *script
 ) {
@@ -28,14 +27,15 @@ static bool runLuaLocalEngine(
 
   int top = lua_gettop(gGameLuaState);
   bool result = true;
+  const char *error = nullptr;
 
   if (luaL_loadstring(gGameLuaState, script) != 0) {
-    const char* load_error = lua_tostring(gGameLuaState, -1);
-    HTTellText("[SkyLuaEngine][WARN] Compilation err: %s\n", load_error);
+    error = lua_tostring(gGameLuaState, -1);
+    LOGW("Compilation err: %s\n", error);
     result = false;
   } else if (lua_pcall(gGameLuaState, 0, LUA_MULTRET, 0) != 0) {
-    const char* runtime_error = lua_tostring(gGameLuaState, -1);
-    HTTellText("[SkyLuaEngine][WARN] Runtime err: %s\n", runtime_error);
+    error = lua_tostring(gGameLuaState, -1);
+    LOGW("Runtime err: %s\n", error);
     result = false;
   }
 
@@ -44,28 +44,28 @@ static bool runLuaLocalEngine(
   return result;
 }
 
+// Run script through the lua engine of the game.
 static bool runLuaSkyEngine(
   const char *script
 ) {
-  if (!fn_Lua_debugDoString || !gGameLuaState || !script)
-    return false;
-  return !(i32)fn_Lua_debugDoString(gGameLuaState, script);
+  return !lua_debugdostring(gGameLuaState, script);
 }
 
-i32 evalAllQueued(i08 local) {
-  std::lock_guard<std::mutex> lock(gScriptLock);
+i32 sleEvalAllQueued(
+  i08 local
+) {
+  std::lock_guard<std::mutex> lock{gScriptLock};
   i32 result = 1;
 
   while (!gScripts.empty()) {
     bool r;
-    char *script = gScripts.front();
+    std::string &script = gScripts.front();
 
     if (local)
-      r = runLuaLocalEngine(script);
+      r = runLuaLocalEngine(script.c_str());
     else
-      r = runLuaSkyEngine(script);
+      r = runLuaSkyEngine(script.c_str());
 
-    free(script);
     gScripts.pop();
 
     if (!r)
@@ -75,34 +75,19 @@ i32 evalAllQueued(i08 local) {
   return result;
 }
 
-i32 queueEval(
+i32 sleQueueEval(
   const char *script
 ) {
-  std::lock_guard<std::mutex> lock(gScriptLock);
+  std::lock_guard<std::mutex> lock{gScriptLock};
 
-  if (!script)
+  if (!script || !gGameLuaState)
     return 0;
+
   u64 len = strlen(script);
   if (!len)
     return 1;
 
-  char *tmp = (char *)malloc(len + 1);
-
-  if (!tmp)
-    return 0;
-
-  strcpy(tmp, script);
-  gScripts.push(tmp);
+  gScripts.push(std::string{script});
 
   return 1;
-}
-
-static bool runScriptLocal(
-  const char *script
-) {
-  return false;
-}
-
-i32 evalLocal() {
-  return 0;
 }

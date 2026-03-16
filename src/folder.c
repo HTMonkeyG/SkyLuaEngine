@@ -1,7 +1,4 @@
-#include <windows.h>
 #include <stdio.h>
-
-#include "aliases.h"
 #include "skylua.h"
 
 static wchar_t gPathScripts[MAX_PATH]
@@ -14,7 +11,7 @@ static i32 folderExists(const wchar_t *path) {
   return 1;
 }
 
-i32 initPaths() {
+i32 sleInitPaths() {
   wchar_t *p;
 
   if (!GetModuleFileNameW(hModuleDll, gPathScripts, MAX_PATH))
@@ -38,7 +35,7 @@ i32 initPaths() {
   return 1;
 }
 
-i32 scanAutoExec() {
+i32 sleScanAutoExec() {
   HANDLE hFindFile;
   WIN32_FIND_DATAW findData;
   wchar_t path[MAX_PATH]
@@ -85,10 +82,10 @@ i32 scanAutoExec() {
 
     fclose(fd);
 
-    printf("Read script %ls\n", path);
+    HTTellText("[SkyLuaEngine][INFO] Read script: %ls\n", path);
 
     // Evaluate script after initialized.
-    queueEval(content);
+    sleQueueEval(content);
 
     free(content);
   } while (FindNextFileW(hFindFile, &findData));
