@@ -22,6 +22,14 @@ static const HTAsmSig sigE8_Game_UpdateSync = {
   .offset = 0x03
 };
 
+static const HTAsmSig sigE8_Game_UpdateSync_netease = {
+  .sig = 
+    "48 83 EC 20 48 89 F1 E8 ?  ?  ?  ?  48 83 C4 20 "
+    "48 8B 4E 60 48 83 EC 20 48 89 F2",
+  .indirect = HTSigScanType_E8,
+  .offset = 0x07
+};
+
 static BOOL initialized = FALSE;
 static HTAsmFunction sfn_Game_UpdateSync = {
   .name = "Game::UpdateSync",
@@ -59,9 +67,12 @@ i32 sleInitAllHooks() {
   
   LOGI("Scanned lua_debugdostring(): %p", fn_lua_debugdostring);
 
-  HTSigScanFunc(
-    &sigE8_Game_UpdateSync,
-    &sfn_Game_UpdateSync);
+  if (!HTSigScanFunc(
+      &sigE8_Game_UpdateSync,
+      &sfn_Game_UpdateSync))
+    HTSigScanFunc(
+      &sigE8_Game_UpdateSync_netease,
+      &sfn_Game_UpdateSync);
   
   sfn_Game_UpdateSync.detour = (void *)hook_Game_UpdateSync;
   if (!HTAsmHookCreate(hModuleDll, &sfn_Game_UpdateSync))
