@@ -4,13 +4,22 @@ A simple C++ program that lets you load Lua scripts into "Sky: Children of the L
 
 ![desktop screenshot](screenshot.png)
 
-The provided `control/terminal.c` lets you script in a command line (like a REPL) to load scripts into the game, while `control/hotload.c` lets you load scripts from a directory.
+The mod includes an in-game editor and REPL (see below). The files in `control/` are optional external tools that can still be used to send scripts or enter Lua code through a named pipe.
 
 The source of the mod is in `src/`.
 
 [HTModLoader](https://www.github.com/HTMonkeyG/HTML-Sky) have to be installed before using this mod. View its documentation for installation.
 
-You need to put the compiled `sky-lua.dll` and `manifest.json` in a single folder to register the mod, then start the game as normal. When the game is fully initialized, press `F8` to show the in-game ImGui menu. Press `F9` to execute active script. Put scripts in `scripts/autoexec` under the mod folder to evaluate them when the game has started.
+You need to put the compiled `sky-lua.dll` and `manifest.json` in a single folder to register the mod, then start the game as normal. When the game is fully initialized, press `F8` to show the in-game ImGui menu. Press `F9` to execute the active script. Put scripts in `scripts/autoexec` under the mod folder to evaluate them when the game has started.
+
+The in-game menu contains two tabs:
+
+* **Editor** - a file browser for the `scripts` folder plus a multi-file editor. Scripts can be created, opened, edited and saved back into `scripts` (subfolders are supported). Unsaved tabs are marked with `*`, and `Ctrl+S` / `Ctrl+N` save the active tab or create a new one.
+* **REPL** - a Lua console running against the game's Lua state. Every line is evaluated as an expression first, then as a statement block, and the results, errors and `print()` / `sle.log()` output are shown in the REPL terminal instead of the HTModLoader console. Use the up/down arrow keys to browse the command history.
+
+When the mod initializes the game's Lua state, it registers `_G.sle = {}` with the following helpers:
+
+* `sle.log(...)` / `sle.print(...)` - print to the REPL terminal while a REPL snippet is running, otherwise print to the HTModLoader console.
 
 The mod itself contains a independent Lua engine (v5.2.0, the same version with the one in-game), enable `Use local engine` to interpret scripts with it. Note that the local engine has some issues when using `print()` function which the game defined. Use `LuaLog` instead.
 

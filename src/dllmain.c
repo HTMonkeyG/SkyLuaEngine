@@ -41,11 +41,13 @@ static DWORD WINAPI ipcThread(void *) {
 __declspec(dllexport) HTStatus HTMLAPI HTModOnInit(
   void *reserved
 ) {
+  sleInitQueue();
+  sleInitPaths();
+
   if (!sleInitAllHooks())
     return HT_FAIL;
 
   sleInitGui();
-  sleInitPaths();
   sleScanAutoExec();
 
   CreateThread(NULL, 0, ipcThread, NULL, 0, NULL);

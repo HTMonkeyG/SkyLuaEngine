@@ -43,6 +43,8 @@ static void __fastcall hook_Game_UpdateSync(
 ) {
   if (!initialized && a1) {
     gGameLuaState = *(lua_State **)(a1 + 4);
+    // This is the earliest point where the game's Lua state exists, so
+    // register _G.sle = {} and the mod bindings here.
     sleAddLuaBindings(gGameLuaState);
     initialized = TRUE;
     LOGI("gGameLuaState = %p", gGameLuaState);
