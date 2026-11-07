@@ -1,37 +1,69 @@
+#include <stdlib.h>
+#include <string.h>
+
 #include "lua.h"
 #include "lauxlib.h"
-#include "lualib.h"
-#include "includes/htmodloader.h"
 
 #include "skylua.h"
 
-/**
- * Print the log to HTML console.
- */
-static i32 logToHT(lua_State *L) {
-  const char *msg = luaL_checkstring(L, 1);
-  if (msg)
-    LOGI("%s", msg);
+// Convert all arguments to strings and join them with tabs, then send the
+// result to the REPL terminal (during a REPL snippet) or the HT console.
+static i32 sleLuaPrint(lua_State *L) {
+  int count = lua_gettop(L);
+  int i;
+  size_t total = 1;
+  char *buffer;
+  char *cursor;
+
+  // Measure the converted arguments first.
+  for (i = 1; i <= count; ++i) {
+    size_t len = 0;
+    luaL_tolstring(L, i, &len);
+    total += len + 1;
+    lua_pop(L, 1);
+  }
+
+  buffer = (char *)malloc(total);
+  if (!buffer)
+    return 0;
+
+  cursor = buffer;
+
+  for (i = 1; i <= count; ++i) {
+    size_t len = 0;
+    const char *text = luaL_tolstring(L, i, &len);
+
+    if (i > 1)
+      *cursor++ = '\t';
+    if (text && len) {
+      memcpy(cursor, text, len);
+      cursor += len;
+    }
+    lua_pop(L, 1);
+  }
+
+  *cursor = 0;
+  sleLogText(buffer);
+  free(buffer);
+
   return 0;
 }
 
 i32 sleAddLuaBindings(lua_State *L) {
+  // Register the namespace: _G.sle = {}
+  lua_newtable(L);
+  lua_setglobal(L, "sle");
+
   lua_getglobal(L, "sle");
 
-  if (lua_isnil(L, -1)) {
-    lua_pop(L, 1);
-    lua_createtable(L, 0, 1);
-    lua_setglobal(L, "sle");
-    lua_getglobal(L, "sle");
-  }
-
-  lua_pushcfunction(L, logToHT);
+  lua_pushcfunction(L, sleLuaPrint);
   lua_setfield(L, -2, "log");
 
-  lua_pop(L, 1);
+  // sle.print() mirrors print() but always respects the REPL capture state.
+  lua_pushcfunction(L, sleLuaPrint);
+  lua_setfield(L, -2, "print");
 
-  // Try to register our own print function.
-  sleQueueEval("_G.sle.print=function(...)_G.sle.log(table.concat({...},\"\t\"))end");
+  lua_pop(L, 1);
 
   return 1;
 }

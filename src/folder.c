@@ -3,12 +3,21 @@
 
 static wchar_t gPathScripts[MAX_PATH]
   , gPathAutoExec[MAX_PATH];
+static char gPathScriptsUtf8[MAX_PATH * 4];
 
 static i32 folderExists(const wchar_t *path) {
   DWORD attr = GetFileAttributesW(path);
   if (attr == INVALID_FILE_ATTRIBUTES || !(attr & FILE_ATTRIBUTE_DIRECTORY))
     return 0;
   return 1;
+}
+
+const wchar_t *sleGetScriptsPath() {
+  return gPathScripts;
+}
+
+const char *sleGetScriptsPathUtf8() {
+  return gPathScriptsUtf8;
 }
 
 i32 sleInitPaths() {
@@ -31,6 +40,14 @@ i32 sleInitPaths() {
     CreateDirectoryW(gPathScripts, NULL);
   if (!folderExists(gPathAutoExec))
     CreateDirectoryW(gPathAutoExec, NULL);
+
+  // Cache the UTF-8 representation for the GUI and file APIs.
+  if (WideCharToMultiByte(
+      CP_UTF8, 0,
+      gPathScripts, -1,
+      gPathScriptsUtf8, (int)sizeof(gPathScriptsUtf8),
+      NULL, NULL) <= 0)
+    gPathScriptsUtf8[0] = 0;
 
   return 1;
 }
