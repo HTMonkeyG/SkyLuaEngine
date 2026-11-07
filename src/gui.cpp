@@ -458,6 +458,12 @@ static void renderEditorTabs() {
         ImGui::PopStyleVar();
         ImGui::PopID();
 
+        // Escape releases keyboard focus from the editor so that hotkeys and
+        // other panels can be used again without clicking elsewhere first.
+        if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)
+            && ImGui::IsKeyPressed(ImGuiKey_Escape))
+          ImGui::SetWindowFocus(nullptr);
+
         if (tab->editor->IsTextChanged())
           tab->modified = true;
 

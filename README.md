@@ -14,7 +14,7 @@ You need to put the compiled `sky-lua.dll` and `manifest.json` in a single folde
 
 The in-game menu contains two tabs:
 
-* **Editor** - a file browser for the `scripts` folder plus a multi-file editor. Scripts can be created, opened, edited and saved back into `scripts` (subfolders are supported). Unsaved tabs are marked with `*`, and `Ctrl+S` / `Ctrl+N` save the active tab or create a new one.
+* **Editor** - a file browser for the `scripts` folder plus a multi-file editor. Scripts can be created, opened, edited and saved back into `scripts` (subfolders are supported). Unsaved tabs are marked with `*`, and `Ctrl+S` / `Ctrl+N` save the active tab or create a new one. Press `Esc` while the editor has keyboard focus to release it.
 * **REPL** - a Lua console running against the game's Lua state. Every line is evaluated as an expression first, then as a statement block, and the results, errors and `print()` / `sle.log()` output are shown in the REPL terminal instead of the HTModLoader console. Use the up/down arrow keys to browse the command history.
 
 When the mod initializes the game's Lua state, it registers `_G.sle = {}` with the following helpers:
